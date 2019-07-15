@@ -19,5 +19,3 @@ export {
   encodeTimestampExtension,
   decodeTimestampExtension,
 } from "./timestamp";
-
-export { WASM_AVAILABLE as __WASM_AVAILABLE } from "./wasmFunctions";

@@ -1,6 +1,3 @@
-export const TEXT_ENCODING_AVAILABLE =
-  process.env.TEXT_ENCODING !== "never" && (typeof TextEncoder !== "undefined" && typeof TextDecoder !== "undefined");
-
 export function utf8Count(str: string): number {
   const strLength = str.length;
 
@@ -84,22 +81,6 @@ export function utf8EncodeJs(str: string, output: Uint8Array, outputOffset: numb
   }
 }
 
-const sharedTextEncoder = TEXT_ENCODING_AVAILABLE ? new TextEncoder() : undefined;
-export const TEXT_ENCODER_THRESHOLD = process.env.TEXT_ENCODING !== "force" ? 200 : 0;
-
-function utf8EncodeTEencode(str: string, output: Uint8Array, outputOffset: number): void {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  output.set(sharedTextEncoder!.encode(str), outputOffset);
-}
-
-function utf8EncodeTEencodeInto(str: string, output: Uint8Array, outputOffset: number): void {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  sharedTextEncoder!.encodeInto(str, output.subarray(outputOffset));
-}
-
-export const utf8EncodeTE =
-  sharedTextEncoder && sharedTextEncoder.encodeInto ? utf8EncodeTEencodeInto : utf8EncodeTEencode;
-
 const CHUNK_SIZE = 0x10_000;
 
 export function utf8DecodeJs(bytes: Uint8Array, inputOffset: number, byteLength: number): string {
@@ -149,13 +130,4 @@ export function utf8DecodeJs(bytes: Uint8Array, inputOffset: number, byteLength:
   }
 
   return result;
-}
-
-const sharedTextDecoder = TEXT_ENCODING_AVAILABLE ? new TextDecoder() : null;
-export const TEXT_DECODER_THRESHOLD = process.env.TEXT_DECODER !== "force" ? 200 : 0;
-
-export function utf8DecodeTD(bytes: Uint8Array, inputOffset: number, byteLength: number): string {
-  const stringBytes = bytes.subarray(inputOffset, inputOffset + byteLength);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return sharedTextDecoder!.decode(stringBytes);
 }

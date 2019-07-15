@@ -1,9 +1,8 @@
 import { prettyByte } from "./utils/prettyByte";
 import { ExtensionCodec } from "./ExtensionCodec";
 import { getInt64, getUint64 } from "./utils/int";
-import { utf8DecodeJs, TEXT_ENCODING_AVAILABLE, TEXT_DECODER_THRESHOLD, utf8DecodeTD } from "./utils/utf8";
+import { utf8DecodeJs } from "./utils/utf8";
 import { createDataView, ensureUint8Array } from "./utils/typedArrays";
-import { WASM_AVAILABLE, WASM_STR_THRESHOLD, utf8DecodeWasm } from "./wasmFunctions";
 
 enum State {
   ARRAY,
@@ -488,13 +487,7 @@ export class Decoder {
 
     const offset = this.pos + headerOffset;
     let object: string;
-    if (TEXT_ENCODING_AVAILABLE && byteLength > TEXT_DECODER_THRESHOLD) {
-      object = utf8DecodeTD(this.bytes, offset, byteLength);
-    } else if (WASM_AVAILABLE && byteLength > WASM_STR_THRESHOLD) {
-      object = utf8DecodeWasm(this.bytes, offset, byteLength);
-    } else {
-      object = utf8DecodeJs(this.bytes, offset, byteLength);
-    }
+    object = utf8DecodeJs(this.bytes, offset, byteLength);
     this.pos += headerOffset + byteLength;
     return object;
   }

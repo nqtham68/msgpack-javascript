@@ -1,9 +1,8 @@
-import { utf8EncodeJs, utf8Count, TEXT_ENCODING_AVAILABLE, TEXT_ENCODER_THRESHOLD, utf8EncodeTE } from "./utils/utf8";
+import { utf8EncodeJs, utf8Count } from "./utils/utf8";
 import { ExtensionCodec } from "./ExtensionCodec";
 import { setInt64, setUint64 } from "./utils/int";
 import { ensureUint8Array } from "./utils/typedArrays";
 import { ExtData } from "./ExtData";
-import { WASM_AVAILABLE, utf8EncodeWasm, WASM_STR_THRESHOLD } from "./wasmFunctions";
 
 export const DEFAULT_MAX_DEPTH = 100;
 export const DEFAULT_INITIAL_BUFFER_SIZE = 2048;
@@ -25,7 +24,7 @@ export class Encoder {
       this.mapKeys = {};
       for (let i = 0; i < mapKeys.length; i++) {
         this.mapKeys[mapKeys[i]] = i;
-      }      
+      }
     }
   }
 
@@ -160,28 +159,11 @@ export class Encoder {
     const maxHeaderSize = 1 + 4;
     const strLength = object.length;
 
-    if (TEXT_ENCODING_AVAILABLE && strLength > TEXT_ENCODER_THRESHOLD) {
-      const byteLength = utf8Count(object);
-      this.ensureBufferSizeToWrite(maxHeaderSize + byteLength);
-      this.writeStringHeader(byteLength);
-      utf8EncodeTE(object, this.bytes, this.pos);
-      this.pos += byteLength;
-    } else if (WASM_AVAILABLE && strLength > WASM_STR_THRESHOLD) {
-      // ensure max possible size
-      const maxSize = maxHeaderSize + strLength * 4;
-      this.ensureBufferSizeToWrite(maxSize);
-
-      // utf8EncodeWasm() handles headByte+size as well as string itself
-      const ouputLength = utf8EncodeWasm(object, this.bytes, this.pos);
-      this.pos += ouputLength;
-      return;
-    } else {
-      const byteLength = utf8Count(object);
-      this.ensureBufferSizeToWrite(maxHeaderSize + byteLength);
-      this.writeStringHeader(byteLength);
-      utf8EncodeJs(object, this.bytes, this.pos);
-      this.pos += byteLength;
-    }
+    const byteLength = utf8Count(object);
+    this.ensureBufferSizeToWrite(maxHeaderSize + byteLength);
+    this.writeStringHeader(byteLength);
+    utf8EncodeJs(object, this.bytes, this.pos);
+    this.pos += byteLength;
   }
 
   encodeObject(object: unknown, depth: number) {
