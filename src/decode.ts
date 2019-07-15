@@ -30,6 +30,10 @@ export type DecodeOptions = Partial<
      * Default to 4_294_967_295 (UINT32_MAX).
      */
     maxExtLength: number;
+    /**
+     * map key use to encode object key
+     */
+    mapKeys: string[];
   }>
 >;
 
@@ -43,6 +47,7 @@ export function decode(buffer: ArrayLike<number>, options: DecodeOptions = defau
     options.maxArrayLength,
     options.maxMapLength,
     options.maxExtLength,
+    options.mapKeys,
   );
   decoder.setBuffer(buffer); // decodeSync() requires only one buffer
   return decoder.decodeOneSync();

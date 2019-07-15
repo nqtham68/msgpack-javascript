@@ -12,17 +12,29 @@ export class Encoder {
   private pos = 0;
   private view = new DataView(new ArrayBuffer(this.initialBufferSize));
   private bytes = new Uint8Array(this.view.buffer);
+  private mapKeys: { [key: string]: number } = null as any;
 
   constructor(
     readonly extensionCodec = ExtensionCodec.defaultCodec,
     readonly maxDepth = DEFAULT_MAX_DEPTH,
     readonly initialBufferSize = DEFAULT_INITIAL_BUFFER_SIZE,
     readonly sortKeys = false,
-  ) {}
+    mapKeys = Array<string>(),
+  ) {
+    if (mapKeys.length > 0) {
+      this.mapKeys = {};
+      for (let i = 0; i < mapKeys.length; i++) {
+        this.mapKeys[mapKeys[i]] = i;
+      }      
+    }
+  }
 
   encode(object: unknown, depth: number): void {
     if (depth > this.maxDepth) {
       throw new Error(`Too deep objects in depth ${depth}`);
+    }
+    if (this.mapKeys && Object.keys(this.mapKeys).length > 255) {
+      throw new Error(`Only support mapkey lenght <= 255`);
     }
 
     if (object == null) {
@@ -254,7 +266,18 @@ export class Encoder {
 
     for (let i = 0; i < size; i++) {
       const key = keys[i];
-      this.encodeString(key);
+      if (this.mapKeys) {
+        let keyIdx = this.mapKeys[key];
+        if (keyIdx != null) {
+          this.writeU8(this.mapKeys[key]);
+        } else {
+          // throw new Error(`Object key '${key}' not found in mapKeys`);
+          console.warn(`Object key '${key}' not found in mapKeys! You might need to add this`);
+          this.encodeString(key);
+        }
+      } else {
+        this.encodeString(key);
+      }
       this.encode(object[key], depth + 1);
     }
   }

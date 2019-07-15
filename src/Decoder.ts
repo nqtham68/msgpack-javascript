@@ -66,6 +66,7 @@ export class Decoder {
     readonly maxArrayLength = DEFAULT_MAX_LENGTH,
     readonly maxMapLength = DEFAULT_MAX_LENGTH,
     readonly maxExtLength = DEFAULT_MAX_LENGTH,
+    readonly mapKeys: string[] | null = null,
   ) {}
 
   setBuffer(buffer: ArrayLike<number>): void {
@@ -387,6 +388,11 @@ export class Decoder {
             continue DECODE;
           }
         } else if (state.type === State.MAP_KEY) {
+          if(typeof object === "number" && this.mapKeys) {
+            // convert object key index to key string
+            object = this.mapKeys[object];
+          }
+
           if (typeof object !== "string") {
             throw new Error("The type of key must be string but " + typeof object);
           }
